@@ -153,11 +153,18 @@ export async function checkCompliance(productName) {
     body: JSON.stringify({ product_name: productName }),
   });
 
-  const data = await response.json();
   if (!response.ok) {
-    throw new Error(data.detail || 'Compliance check failed');
+    let errorMessage = 'Compliance check failed (Server Error)';
+    try {
+      const errData = await response.json();
+      errorMessage = errData.detail || errorMessage;
+    } catch (e) {
+      errorMessage = `Server returned status ${response.status}: ${response.statusText}`;
+    }
+    throw new Error(errorMessage);
   }
-  return data;
+  
+  return await response.json();
 }
 
 /**

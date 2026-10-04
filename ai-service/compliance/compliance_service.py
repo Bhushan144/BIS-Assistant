@@ -48,6 +48,41 @@ def check_product_compliance(product_name: str) -> Dict[str, Any]:
     std_num = top_chunk.get("standard_number") or "BIS Standard"
     doc_title = top_chunk.get("document_title") or top_chunk.get("document_name") or p_clean
 
+    # Add LLM validation step to ensure retrieved chunks actually match the product requested
+    try:
+        from llm.llm_service import get_groq_client, get_groq_model
+        client = get_groq_client()
+        prompt = (
+            f"You are a validation assistant. A user searched for the product: '{p_clean}'.\n"
+            f"The search engine returned a document titled: '{doc_title}' (Standard: {std_num}).\n\n"
+            f"Context from document: {chunks[0].get('text', '')[:500]}\n\n"
+            f"Question: Does this document clearly and specifically cover the product '{p_clean}'? "
+            f"Respond with exactly one word: YES or NO."
+        )
+        response = client.chat.completions.create(
+            model=get_groq_model(),
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.1,
+            max_tokens=10
+        )
+        answer = response.choices[0].message.content.strip().upper()
+        if "NO" in answer:
+            return {
+                "product_name": p_clean,
+                "compliance_status": "No Standard Found",
+                "standard_number": None,
+                "document_title": f"No matching BIS Standard found for '{p_clean}'.",
+                "certification_scheme": "Unknown",
+                "mandatory_tests": [],
+                "required_documents": [
+                    "Official BIS Standard Document (Upload PDF in Document Management)"
+                ],
+                "marking_requirements": "Marking requirements not available in uploaded documents."
+            }
+    except Exception as e:
+        print(f"[Compliance Service] LLM Validation failed: {e}")
+        # Proceed with heuristic extraction if validation fails
+
     # Aggregate extracted test names and requirements from matching chunks
     mandatory_tests = []
     required_docs = [
