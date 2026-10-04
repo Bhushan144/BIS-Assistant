@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+
+# Environment & IDE
+.env
+.vscode/
+.idea/
+
+# Data uploads (keep directory, ignore uploaded files for privacy)
+data/uploads/*
+!data/uploads/.gitkeep
