@@ -61,7 +61,7 @@ def hybrid_search(
     document_id: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
-    Execute Hybrid Retrieval combining ChromaDB Dense Vector Search and BM25 Sparse Keyword Search.
+    Execute Hybrid Retrieval combining Qdrant Dense Vector Search and BM25 Sparse Keyword Search.
     """
     if not query or not query.strip():
         return []

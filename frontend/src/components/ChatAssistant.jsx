@@ -9,7 +9,7 @@ export default function ChatAssistant({ language = 'English' }) {
   const [messages, setMessages] = useState([
     {
       sender: 'assistant',
-      text: 'Hello! I am your AI-Powered BIS Standards Assistant. Ask me any question regarding your uploaded official Bureau of Indian Standards (BIS) documents.',
+      text: 'Hello! I am your AI-Powered BIS Standards Assistant. Ask me any question regarding official Bureau of Indian Standards (BIS).',
       sources: []
     }
   ]);

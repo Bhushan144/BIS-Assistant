@@ -32,7 +32,7 @@ export default function VectorSearchTester() {
       <div className="card-header">
         <div className="card-title">
           <Search style={{ color: '#3B82F6' }} />
-          <span>Phase 3 Vector Store Search Tester (ChromaDB + SentenceTransformers)</span>
+          <span>Phase 3 Vector Store Search Tester (Qdrant + SentenceTransformers)</span>
         </div>
         <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>No LLM Generation</span>
       </div>
@@ -106,7 +106,7 @@ export default function VectorSearchTester() {
           {results.results_count === 0 ? (
             <div className="empty-state">
               <Database size={40} />
-              <p>No matching vectors found. Ensure you have indexed at least one processed document in ChromaDB.</p>
+              <p>No matching vectors found. Ensure you have indexed at least one processed document in Qdrant.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

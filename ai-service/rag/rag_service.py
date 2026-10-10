@@ -100,7 +100,7 @@ def query_rag_pipeline(
 ) -> Dict[str, Any]:
     """
     Execute full Phase 4 & Phase 5 RAG pipeline:
-    1. Retrieve top-k relevant vector chunks from ChromaDB
+    1. Retrieve top-k relevant vector chunks from Qdrant
     2. Format structured context
     3. Call Groq LLM with strict grounding prompt
     4. Construct structured citation metadata with text snippets & PDF links
@@ -110,7 +110,7 @@ def query_rag_pipeline(
 
     k = top_k if top_k is not None and top_k > 0 else get_default_top_k()
 
-    # Step 1: Retrieve matching chunks from ChromaDB vectorstore
+    # Step 1: Retrieve matching chunks from Qdrant vectorstore
     retrieved_chunks = similarity_search(
         query=query.strip(),
         top_k=k,

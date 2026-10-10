@@ -10,7 +10,7 @@ class DocumentMetadata(BaseModel):
     uploaded_at: str = Field(..., description="ISO 8601 upload timestamp")
     status: str = Field(default="uploaded", description="Processing status (uploaded | processing | processed | indexing | indexed | error)")
     chunk_count: int = Field(default=0, description="Total structure-aware chunks generated")
-    indexed_chunk_count: int = Field(default=0, description="Total chunks indexed in ChromaDB vector database")
+    indexed_chunk_count: int = Field(default=0, description="Total chunks indexed in Qdrant vector database")
     pages_with_text: Optional[int] = Field(default=None, description="Pages containing extractable text")
     standard_number: Optional[str] = Field(default=None, description="Detected Indian Standard number (e.g. IS 4250)")
     document_title: Optional[str] = Field(default=None, description="Extracted document title")

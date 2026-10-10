@@ -79,7 +79,7 @@ export async function processDocument(documentId) {
 }
 
 /**
- * Trigger Phase 3 ChromaDB vector database indexing for a processed document
+ * Trigger Phase 3 Qdrant vector database indexing for a processed document
  * @param {string} documentId 
  */
 export async function indexDocument(documentId) {
@@ -98,7 +98,7 @@ export async function indexDocument(documentId) {
 }
 
 /**
- * Perform vector similarity search in ChromaDB
+ * Perform vector similarity search in Qdrant
  * @param {string} query 
  * @param {number} topK 
  */

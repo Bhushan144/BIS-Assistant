@@ -117,7 +117,7 @@ bis-assistant/
 ## 🗺️ Roadmap (Future Phases)
 
 * **Phase 2**: Structure-Aware PDF Extraction & Chunking
-* **Phase 3**: Vector DB Indexing & Embeddings (ChromaDB / Qdrant)
+* **Phase 3**: Vector DB Indexing & Embeddings (Qdrant)
 * **Phase 4**: Grounded LLM Generation & Retrieval Engine
 * **Phase 5**: Citation Formatter & Source Document Side-Panel
 * **Phase 6**: Hybrid Retrieval (Dense Vector + BM25 Sparse Search + Reranking)

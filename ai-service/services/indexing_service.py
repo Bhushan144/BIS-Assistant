@@ -42,7 +42,7 @@ def index_document_pipeline(document_id: str) -> Tuple[Dict[str, Any], int]:
     1. Verify document registry entry & chunks.json existence
     2. Set status to 'indexing'
     3. Load processed chunks from data/processed/{document_id}/chunks.json
-    4. Generate embeddings via SentenceTransformer and upsert into ChromaDB
+    4. Generate embeddings via SentenceTransformer and upsert into Qdrant
     5. Set status to 'indexed' and record indexed_chunk_count
     """
     doc = get_document_by_id(document_id)
@@ -75,7 +75,7 @@ def index_document_pipeline(document_id: str) -> Tuple[Dict[str, Any], int]:
             })
             return {"error": "Document contains no valid text chunks to index."}, 400
 
-        # Step 3: Embed & upsert into ChromaDB vectorstore
+        # Step 3: Embed & upsert into Qdrant vectorstore
         indexed_count = add_chunks_to_vectorstore(chunks)
 
         # Step 4: Update document status in registry DB to 'indexed'

@@ -76,7 +76,7 @@ export default function DocumentList({ documents, loading, onRefresh }) {
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error('Failed to index document:', err);
-      setErrorMessage(err.message || 'Error indexing document in ChromaDB');
+      setErrorMessage(err.message || 'Error indexing document in Qdrant');
     } finally {
       setActionId(null);
       setActionType(null);
@@ -186,14 +186,14 @@ export default function DocumentList({ documents, loading, onRefresh }) {
       return (
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-xs text-emerald-400 font-medium">
-            <CheckCircle size={14} /> ChromaDB Ready
+            <CheckCircle size={14} /> Qdrant Ready
           </span>
           <button
             type="button"
             onClick={() => handleIndex(doc.document_id)}
             disabled={isBusy}
             className="text-[11px] text-gray-400 hover:text-white border border-gray-600 hover:border-gray-400 px-2 py-1 rounded transition-colors disabled:opacity-50"
-            title="Re-index vectors in ChromaDB"
+            title="Re-index vectors in Qdrant"
           >
             Re-index
           </button>

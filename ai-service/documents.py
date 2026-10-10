@@ -91,7 +91,7 @@ def process_document(document_id: str):
 @router.post("/{document_id}/index", response_model=IndexDocumentResponse)
 def index_document(document_id: str):
     """
-    Execute Phase 3 vector database indexing in ChromaDB using SentenceTransformers.
+    Execute Phase 3 vector database indexing in Qdrant using SentenceTransformers.
     """
     result, status_code = index_document_pipeline(document_id)
     if status_code != 200:

@@ -45,7 +45,7 @@ class SearchResponse(BaseModel):
 @router.post("", response_model=SearchResponse)
 def vector_search(req: SearchRequest):
     """
-    Execute vector similarity search in ChromaDB using sentence-transformers embedding.
+    Execute vector similarity search in Qdrant using sentence-transformers embedding.
     Returns top-k matching BIS text chunks with page, section, and standard metadata.
     Does NOT call any LLM.
     """

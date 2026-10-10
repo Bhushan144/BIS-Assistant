@@ -1,3 +1,3 @@
 """
-Vectorstore package for persistent ChromaDB storage and similarity search.
+Vectorstore package for persistent Qdrant storage and similarity search.
 """
