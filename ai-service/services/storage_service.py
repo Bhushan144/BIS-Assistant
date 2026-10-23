@@ -14,6 +14,9 @@ def _normalize_supabase_url(url: str) -> str:
         match = re.search(r"postgres\.([a-zA-Z0-9]+):", url)
         if match:
             return f"https://{match.group(1)}.supabase.co"
+    import re
+    # Strip any trailing /rest/v1, /storage/v1, or slashes
+    url = re.sub(r"/(rest|storage|auth)/v\d+/?$", "", url)
     return url.rstrip("/")
 
 SUPABASE_URL = _normalize_supabase_url(os.getenv("SUPABASE_URL", ""))
