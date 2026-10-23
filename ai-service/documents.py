@@ -6,8 +6,10 @@ from document_service import (
     process_single_pdf,
     load_documents_db,
     get_document_by_id,
+    ensure_pdf_cached_locally,
     UPLOADS_DIR
 )
+from storage_service import delete_file_from_storage
 import os
 import sys
 import json
@@ -122,6 +124,7 @@ def get_document(document_id: str):
 def get_document_file(document_id: str):
     """
     Serve original uploaded PDF document file for browser preview / viewing.
+    If running in ephemeral cloud environment, downloads from Supabase Storage and caches locally.
     """
     doc = get_document_by_id(document_id)
     if not doc:
@@ -130,17 +133,14 @@ def get_document_file(document_id: str):
             detail=f"Document with ID '{document_id}' not found."
         )
 
-    filename = doc.get("filename")
-    safe_filename = f"{document_id}_{filename}"
-    upload_path = UPLOADS_DIR / safe_filename
+    filename = doc.get("filename", "document.pdf")
+    upload_path = ensure_pdf_cached_locally(document_id, filename)
 
-    if not upload_path.exists():
-        upload_path = UPLOADS_DIR / filename
-        if not upload_path.exists():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"PDF file for document '{document_id}' missing from disk."
-            )
+    if not upload_path or not upload_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PDF file for document '{document_id}' missing from disk and cloud storage."
+        )
 
     return FileResponse(
         path=str(upload_path),
@@ -194,7 +194,7 @@ def delete_single_document(document_id: str):
     docs = [d for d in docs if d.get("document_id") != document_id]
     save_documents_db(docs)
 
-    # 2. Delete File
+    # 2. Delete File locally and in cloud storage
     filename = target_doc.get("filename")
     safe_filename = f"{document_id}_{filename}"
     upload_path = UPLOADS_DIR / safe_filename
@@ -205,6 +205,15 @@ def delete_single_document(document_id: str):
         alt_path = UPLOADS_DIR / filename
         if alt_path.exists():
             alt_path.unlink()
+
+    # Clean up from Supabase Storage
+    try:
+        delete_file_from_storage(f"pdfs/{safe_filename}")
+        delete_file_from_storage(f"pdfs/{filename}")
+        delete_file_from_storage(f"processed/{document_id}/chunks.json")
+        delete_file_from_storage(f"processed/{document_id}/pages.json")
+    except Exception as e:
+        print(f"Error deleting cloud storage files for {document_id}: {e}")
 
     # 3. Delete from Vector DB
     try:

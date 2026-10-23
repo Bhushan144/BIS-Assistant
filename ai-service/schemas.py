@@ -18,6 +18,8 @@ class DocumentMetadata(BaseModel):
     processed_at: Optional[str] = Field(default=None, description="ISO timestamp when processing completed")
     indexed_at: Optional[str] = Field(default=None, description="ISO timestamp when vector indexing completed")
     error: Optional[str] = Field(default=None, description="Error message if processing or indexing failed")
+    storage_path: Optional[str] = Field(default=None, description="Storage object path in cloud storage")
+    storage_url: Optional[str] = Field(default=None, description="Direct URL to file in cloud storage")
 
 class ProcessDocumentResponse(BaseModel):
     document_id: str

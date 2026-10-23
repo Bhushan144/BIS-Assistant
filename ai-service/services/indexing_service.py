@@ -20,6 +20,7 @@ from document_service import (
     get_document_by_id,
     DATA_DIR
 )
+from storage_service import is_cloud_storage_enabled, download_file_from_storage
 
 PROCESSED_DIR = DATA_DIR / "processed"
 
@@ -50,6 +51,13 @@ def index_document_pipeline(document_id: str) -> Tuple[Dict[str, Any], int]:
         return {"error": f"Document with ID '{document_id}' not found."}, 404
 
     chunks_file_path = PROCESSED_DIR / document_id / "chunks.json"
+
+    if not chunks_file_path.exists() and is_cloud_storage_enabled():
+        data = download_file_from_storage(f"processed/{document_id}/chunks.json")
+        if data:
+            chunks_file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(chunks_file_path, "wb") as f:
+                f.write(data)
 
     if not chunks_file_path.exists():
         update_document_status_db(document_id, {

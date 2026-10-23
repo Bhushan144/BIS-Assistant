@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
@@ -29,10 +30,26 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Enable CORS for React frontend development server
+# Dynamic CORS configuration for development and cloud deployments
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+node_backend_url = os.getenv("NODE_BACKEND_URL", "http://localhost:3000")
+
+allowed_origins = [
+    frontend_url,
+    node_backend_url,
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+if os.getenv("ALLOWED_ORIGINS"):
+    allowed_origins.extend([o.strip() for o in os.getenv("ALLOWED_ORIGINS").split(",") if o.strip()])
+
+allowed_origins = list(dict.fromkeys([o for o in allowed_origins if o]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

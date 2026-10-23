@@ -19,6 +19,9 @@ dist/
 .vscode/
 .idea/
 
-# Data uploads (keep directory, ignore uploaded files for privacy)
+# Data uploads and runtime cache
 data/uploads/*
 !data/uploads/.gitkeep
+data/processed/*
+ai-service/data/
+

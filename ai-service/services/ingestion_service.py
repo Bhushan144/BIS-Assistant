@@ -20,9 +20,11 @@ from document_service import (
     load_documents_db,
     save_documents_db,
     get_document_by_id,
+    ensure_pdf_cached_locally,
     UPLOADS_DIR,
     DATA_DIR
 )
+from storage_service import is_cloud_storage_enabled, upload_file_to_storage
 
 PROCESSED_DIR = DATA_DIR / "processed"
 
@@ -60,16 +62,12 @@ def process_document_pipeline(document_id: str) -> Tuple[Dict[str, Any], int]:
     if not doc:
         return {"error": f"Document with ID '{document_id}' not found."}, 404
 
-    filename = doc.get("filename")
-    safe_filename = f"{document_id}_{filename}"
-    upload_file_path = UPLOADS_DIR / safe_filename
+    filename = doc.get("filename", "document.pdf")
+    upload_file_path = ensure_pdf_cached_locally(document_id, filename)
 
-    if not upload_file_path.exists():
-        # Fallback search if saved without prefix
-        upload_file_path = UPLOADS_DIR / filename
-        if not upload_file_path.exists():
-            update_document_status_db(document_id, {"status": "error", "error": "Original PDF file missing from disk."})
-            return {"error": f"Original PDF file for document '{document_id}' missing from uploads directory."}, 404
+    if not upload_file_path or not upload_file_path.exists():
+        update_document_status_db(document_id, {"status": "error", "error": "Original PDF file missing from disk and cloud storage."})
+        return {"error": f"Original PDF file for document '{document_id}' missing from uploads directory and storage."}, 404
 
     # Step 1: Set status to 'processing'
     update_document_status_db(document_id, {"status": "processing"})
@@ -105,6 +103,11 @@ def process_document_pipeline(document_id: str) -> Tuple[Dict[str, Any], int]:
         chunks_json_path = proc_dir / "chunks.json"
         with open(chunks_json_path, "w", encoding="utf-8") as f:
             json.dump(chunks_data, f, indent=2, ensure_ascii=False)
+
+        # Upload processed data to Supabase Storage for permanent persistence
+        if is_cloud_storage_enabled():
+            upload_file_to_storage(f"processed/{document_id}/pages.json", json.dumps(pages_data, indent=2, ensure_ascii=False).encode("utf-8"), "application/json")
+            upload_file_to_storage(f"processed/{document_id}/chunks.json", json.dumps(chunks_data, indent=2, ensure_ascii=False).encode("utf-8"), "application/json")
 
         # Step 6: Update document registry DB with success status & counts
         status_updates = {

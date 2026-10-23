@@ -26,13 +26,18 @@ VECTOR_DIMENSION = 384
 _qdrant_client: Optional[QdrantClient] = None
 
 def get_qdrant_client() -> QdrantClient:
-    """Initialize or get singleton Qdrant DB client."""
+    """Initialize or get singleton Qdrant DB client (supports local Docker and Qdrant Cloud)."""
     global _qdrant_client
     if _qdrant_client is None:
         qdrant_url = os.getenv("QDRANT_URL", "localhost")
-        qdrant_port = int(os.getenv("QDRANT_PORT", "6333"))
-        print(f"[QdrantService] Initializing Qdrant client at {qdrant_url}:{qdrant_port}...")
-        _qdrant_client = QdrantClient(host=qdrant_url, port=qdrant_port)
+        qdrant_api_key = os.getenv("QDRANT_API_KEY", None)
+        if qdrant_api_key or qdrant_url.startswith("http://") or qdrant_url.startswith("https://"):
+            print(f"[QdrantService] Connecting to Qdrant Cloud/Remote at {qdrant_url}...")
+            _qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+        else:
+            qdrant_port = int(os.getenv("QDRANT_PORT", "6333"))
+            print(f"[QdrantService] Connecting to local Qdrant at {qdrant_url}:{qdrant_port}...")
+            _qdrant_client = QdrantClient(host=qdrant_url, port=qdrant_port)
     return _qdrant_client
 
 def get_collection_name() -> str:
