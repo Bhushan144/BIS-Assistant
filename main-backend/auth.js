@@ -42,11 +42,14 @@ export function clearTokenCookie(res) {
 }
 
 /**
- * Auth middleware — verifies JWT from cookie.
+ * Auth middleware — verifies JWT from Authorization Bearer header or cookie.
  * Attaches req.user = { userId, email, role }
  */
 export function authMiddleware(req, res, next) {
-  const token = req.cookies?.token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = bearerToken || req.cookies?.token;
+
   if (!token) {
     return res.status(401).json({ error: 'Authentication required' });
   }

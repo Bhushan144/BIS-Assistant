@@ -34,6 +34,7 @@ export function createAuthRouter(prisma) {
       setTokenCookie(res, token);
 
       res.status(201).json({
+        token,
         user: { id: user.id, email: user.email, name: user.name, role: user.role }
       });
     } catch (error) {
@@ -68,6 +69,7 @@ export function createAuthRouter(prisma) {
       setTokenCookie(res, token);
 
       res.json({
+        token,
         user: { id: user.id, email: user.email, name: user.name, role: user.role }
       });
     } catch (error) {

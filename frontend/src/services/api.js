@@ -7,9 +7,14 @@ const rawAi = (import.meta.env.VITE_AI_API_URL || '').trim();
 const NODE_API = rawNode.replace(/\/+$/, '').replace(/\/api$/, '');
 const AI_API = rawAi.replace(/\/+$/, '').replace(/\/api$/, '');
 
-// --- Helper: Node backend fetch (auth/chat) with cookies ---
+// --- Helper: Node backend fetch (auth/chat) with cookies and Bearer token ---
 async function nodeFetch(path, options = {}) {
-  return fetch(`${NODE_API}${path}`, { credentials: 'include', ...options });
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('bis_token') : null;
+  const headers = {
+    ...(options.headers || {}),
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+  return fetch(`${NODE_API}${path}`, { credentials: 'include', ...options, headers });
 }
 
 // --- Helper: AI service fetch (documents/search/rag) ---
@@ -24,7 +29,12 @@ async function aiFetch(path, options = {}) {
 export async function authMe() {
   try {
     const res = await nodeFetch('/api/auth/me');
-    if (!res.ok) return null;
+    if (!res.ok) {
+      if (res.status === 401 && typeof localStorage !== 'undefined') {
+        localStorage.removeItem('bis_token');
+      }
+      return null;
+    }
     const data = await res.json();
     return data.user || null;
   } catch {
@@ -45,6 +55,9 @@ export async function authLogin(email, password) {
     throw new Error(`Server returned status ${res.status}`);
   }
   if (!res.ok) throw new Error(data.error || 'Login failed');
+  if (data.token && typeof localStorage !== 'undefined') {
+    localStorage.setItem('bis_token', data.token);
+  }
   return data.user;
 }
 
@@ -61,10 +74,16 @@ export async function authRegister(name, email, password) {
     throw new Error(`Server returned status ${res.status}`);
   }
   if (!res.ok) throw new Error(data.error || 'Registration failed');
+  if (data.token && typeof localStorage !== 'undefined') {
+    localStorage.setItem('bis_token', data.token);
+  }
   return data.user;
 }
 
 export async function authLogout() {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('bis_token');
+  }
   try {
     await nodeFetch('/api/auth/logout', { method: 'POST' });
   } catch {
