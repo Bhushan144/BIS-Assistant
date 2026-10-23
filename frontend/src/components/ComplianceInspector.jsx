@@ -27,135 +27,115 @@ export default function ComplianceInspector() {
   };
 
   return (
-    <div className="card-container">
-      <div className="card-header">
-        <div className="card-title">
-          <ShieldCheck style={{ color: '#E05A10' }} />
-          <span>BIS Product Compliance & Certification Inspector</span>
+    <div className="glass-card">
+      <div className="glass-page-header border-b border-white/5 pb-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-[0_4px_16px_rgba(245,158,11,0.2)]">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-100 m-0 leading-tight">Compliance Inspector</h2>
+            <p className="text-xs text-gray-400 mt-1">Automated Testing & Scheme Analysis</p>
+          </div>
         </div>
-        <span style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Automated Testing & Scheme Analysis</span>
       </div>
 
-      <form onSubmit={handleInspect} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <input
-          type="text"
-          value={productName}
-          onChange={(e) => setProductName(e.target.value)}
-          placeholder="Enter product name (e.g. 'Food Mixer', 'Pressure Cooker', 'Stainless Steel Bottle')"
-          style={{
-            flex: 1,
-            background: '#0F172A',
-            border: '1px solid #334155',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            color: '#F8FAFC',
-            fontSize: '0.9rem'
-          }}
-        />
+      <form onSubmit={handleInspect} className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="flex-1 relative group">
+          <input
+            type="text"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            placeholder="Enter product name (e.g. 'Food Mixer', 'Pressure Cooker')"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-gray-100 placeholder-gray-500 focus:border-amber-500 focus:bg-white/10 transition-all shadow-inner outline-none"
+          />
+        </div>
         <button
           type="submit"
-          className="btn-primary"
           disabled={loading || !productName.trim()}
-          style={{ padding: '0.75rem 1.5rem' }}
+          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all text-white disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-amber-500 to-orange-600 hover:shadow-[0_4px_20px_rgba(245,158,11,0.3)] hover:-translate-y-0.5"
         >
           {loading ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              <span>Analyzing Standards...</span>
+              <span>Analyzing...</span>
             </>
           ) : (
             <>
               <Search size={16} />
-              <span>Inspect Compliance</span>
+              <span>Inspect</span>
             </>
           )}
         </button>
       </form>
 
       {error && (
-        <div className="alert-box alert-error" style={{ marginBottom: '1.5rem' }}>
-          <AlertCircle size={16} />
+        <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <AlertCircle size={18} />
           <div>{error}</div>
         </div>
       )}
 
       {report && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div className="flex flex-col gap-6 animate-[fadeIn_0.4s_ease-out]">
           {/* Summary Banner */}
-          <div
-            style={{
-              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9))',
-              border: '1px solid #334155',
-              borderRadius: '10px',
-              padding: '1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '0.8rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Target Product
-              </div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC', margin: '0.2rem 0' }}>
-                {report.product_name}
-              </h2>
-              <div style={{ fontSize: '0.88rem', color: '#60A5FA', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <FileText size={15} />
-                <span>{report.document_title}</span>
-              </div>
-            </div>
-
-            {report.standard_number && (
-              <div style={{ textAlign: 'right' }}>
-                <span
-                  style={{
-                    background: 'linear-gradient(135deg, #E05A10, #D97706)',
-                    color: '#fff',
-                    padding: '0.4rem 0.85rem',
-                    borderRadius: '6px',
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  {report.standard_number}
-                </span>
-                <div style={{ fontSize: '0.78rem', color: '#10B981', marginTop: '0.4rem', fontWeight: 600 }}>
-                  ✓ {report.compliance_status}
+          <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 shadow-lg">
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-48 h-48 bg-amber-500/20 blur-3xl rounded-full pointer-events-none" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Target Product
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">{report.product_name}</h2>
+                <div className="flex items-center gap-2 text-sm text-blue-400">
+                  <FileText size={16} />
+                  <span>{report.document_title}</span>
                 </div>
               </div>
-            )}
+
+              {report.standard_number && (
+                <div className="md:text-right flex flex-col md:items-end">
+                  <span className="inline-block bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-1.5 rounded-lg text-lg font-bold shadow-md">
+                    {report.standard_number}
+                  </span>
+                  <div className="flex items-center gap-1.5 text-sm text-emerald-400 mt-2 font-medium">
+                    <CheckCircle2 size={16} />
+                    <span>{report.compliance_status}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Grid Details */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Certification Scheme */}
-            <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: '10px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#F59E0B', fontWeight: 600 }}>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-colors">
+              <div className="flex items-center gap-2 mb-4 text-amber-400 font-semibold">
                 <Award size={18} />
-                <span>Applicable Certification Scheme</span>
+                <span>Certification Scheme</span>
               </div>
-              <p style={{ fontSize: '0.9rem', color: '#CBD5E1', lineHeight: '1.5' }}>
+              <p className="text-sm text-gray-300 leading-relaxed mb-4">
                 {report.certification_scheme}
               </p>
-              <div style={{ marginTop: '0.85rem', fontSize: '0.82rem', color: '#94A3B8', borderTop: '1px solid #1E293B', paddingTop: '0.6rem' }}>
-                <strong>Marking Rules:</strong> {report.marking_requirements}
+              <div className="text-xs text-gray-400 border-t border-white/10 pt-4 mt-auto">
+                <strong className="text-gray-300">Marking Rules:</strong> {report.marking_requirements}
               </div>
             </div>
 
-            {/* Mandatory Testing Breakdown */}
-            <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: '10px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#34D399', fontWeight: 600 }}>
+            {/* Mandatory Testing */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-colors">
+              <div className="flex items-center gap-2 mb-4 text-emerald-400 font-semibold">
                 <CheckCircle2 size={18} />
-                <span>Mandatory Testing Requirements</span>
+                <span>Testing Requirements</span>
               </div>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <ul className="flex flex-col gap-2.5">
                 {report.mandatory_tests.map((test, tIdx) => (
-                  <li key={tIdx} style={{ fontSize: '0.88rem', color: '#F8FAFC', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <span style={{ color: '#10B981', fontWeight: 'bold' }}>•</span>
-                    <span>{test}</span>
+                  <li key={tIdx} className="text-sm text-gray-200 flex items-start gap-2.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                    <span className="leading-snug">{test}</span>
                   </li>
                 ))}
               </ul>
@@ -163,16 +143,16 @@ export default function ComplianceInspector() {
           </div>
 
           {/* Documentation Checklist */}
-          <div style={{ background: '#0F172A', border: '1px solid #334155', borderRadius: '10px', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#60A5FA', fontWeight: 600 }}>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-colors">
+            <div className="flex items-center gap-2 mb-5 text-blue-400 font-semibold">
               <ClipboardList size={18} />
-              <span>Mandatory Compliance Document Checklist</span>
+              <span>Mandatory Documentation</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {report.required_documents.map((docItem, dIdx) => (
-                <div key={dIdx} style={{ background: '#1E293B', padding: '0.65rem 0.85rem', borderRadius: '6px', fontSize: '0.85rem', color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <FileText size={15} style={{ color: '#60A5FA' }} />
-                  <span>{docItem}</span>
+                <div key={dIdx} className="bg-black/20 border border-white/5 p-3 rounded-xl text-sm text-gray-300 flex items-center gap-3">
+                  <FileText size={16} className="text-blue-500 shrink-0" />
+                  <span className="leading-snug">{docItem}</span>
                 </div>
               ))}
             </div>

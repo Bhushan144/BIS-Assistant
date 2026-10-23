@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Database, FileText, Sparkles, Layers, Tag, Percent } from 'lucide-react';
+import { Search, Database, FileText, Sparkles, Tag, Percent, Loader2 } from 'lucide-react';
 import { searchVectorDb } from '../services/api';
 
 export default function VectorSearchTester() {
@@ -28,141 +28,117 @@ export default function VectorSearchTester() {
   };
 
   return (
-    <div className="card-container">
-      <div className="card-header">
-        <div className="card-title">
-          <Search style={{ color: '#3B82F6' }} />
-          <span>Phase 3 Vector Store Search Tester (Qdrant + SentenceTransformers)</span>
+    <div className="glass-card">
+      <div className="glass-page-header border-b border-white/5 pb-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-[0_4px_16px_rgba(139,92,246,0.2)]">
+            <Search size={20} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-100 m-0 leading-tight">Vector Search Tester</h2>
+            <p className="text-xs text-gray-400 mt-1">Raw Qdrant Semantic Search (No LLM)</p>
+          </div>
         </div>
-        <span style={{ fontSize: '0.82rem', color: '#94A3B8' }}>No LLM Generation</span>
       </div>
 
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="flex-1 relative group">
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter BIS standard query (e.g., 'What are the insulation resistance tests for pressure cookers?')"
-            style={{
-              width: '100%',
-              background: '#0F172A',
-              border: '1px solid #334155',
-              borderRadius: '8px',
-              padding: '0.75rem 1rem',
-              color: '#F8FAFC',
-              fontSize: '0.9rem'
-            }}
+            placeholder="Enter standard query (e.g. 'insulation resistance for pressure cookers')"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-gray-100 placeholder-gray-500 focus:border-purple-500 focus:bg-white/10 transition-all shadow-inner outline-none"
           />
         </div>
 
         <select
           value={topK}
           onChange={(e) => setTopK(Number(e.target.value))}
-          style={{
-            background: '#0F172A',
-            border: '1px solid #334155',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            color: '#F8FAFC',
-            fontSize: '0.9rem'
-          }}
+          className="bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-sm text-gray-100 focus:border-purple-500 outline-none appearance-none min-w-[100px]"
         >
-          <option value={3}>Top 3</option>
-          <option value={5}>Top 5</option>
-          <option value={10}>Top 10</option>
+          <option value={3} className="bg-slate-800">Top 3</option>
+          <option value={5} className="bg-slate-800">Top 5</option>
+          <option value={10} className="bg-slate-800">Top 10</option>
         </select>
 
         <button
           type="submit"
-          className="btn-primary"
           disabled={searching || !query.trim()}
-          style={{ padding: '0.75rem 1.5rem' }}
+          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all text-white disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-500 to-indigo-600 hover:shadow-[0_4px_20px_rgba(139,92,246,0.3)] hover:-translate-y-0.5"
         >
           {searching ? (
-            <span>Searching Vectors...</span>
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Searching...</span>
+            </>
           ) : (
             <>
               <Search size={16} />
-              <span>Vector Search</span>
+              <span>Search</span>
             </>
           )}
         </button>
       </form>
 
       {error && (
-        <div className="alert-box alert-error" style={{ marginBottom: '1.5rem' }}>
-          {error}
+        <div className="flex items-center gap-3 p-4 mb-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="shrink-0"><AlertCircle size={18} /></div>
+          <div>{error}</div>
         </div>
       )}
 
       {results && (
-        <div>
-          <div style={{ fontSize: '0.9rem', color: '#94A3B8', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sparkles size={16} style={{ color: '#F59E0B' }} />
-            <span>Retrieved <strong>{results.results_count}</strong> matching vectors for <em>"{results.query}"</em>:</span>
+        <div className="animate-[fadeIn_0.4s_ease-out]">
+          <div className="flex items-center gap-2 mb-4 text-sm font-medium text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded-lg px-4 py-2 w-fit">
+            <Sparkles size={16} />
+            <span>Found {results.results_count} vectors for "{results.query}"</span>
           </div>
 
           {results.results_count === 0 ? (
-            <div className="empty-state">
-              <Database size={40} />
-              <p>No matching vectors found. Ensure you have indexed at least one processed document in Qdrant.</p>
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-black/20 border border-white/5 rounded-2xl">
+              <Database size={40} className="text-gray-600 mb-3" />
+              <p className="text-gray-400 text-sm">No matching vectors found. Ensure you have indexed documents.</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="flex flex-col gap-4">
               {results.results.map((res, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    border: '1px solid #334155',
-                    borderRadius: '8px',
-                    padding: '1.25rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1E293B', paddingBottom: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                      <FileText size={16} style={{ color: '#60A5FA' }} />
-                      <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{res.document_name}</span>
+                <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/[0.07] transition-colors">
+                  
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-white/10">
+                    <div className="flex items-center flex-wrap gap-2">
+                      <div className="flex items-center gap-2 bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-md text-xs font-semibold">
+                        <FileText size={14} />
+                        {res.document_name}
+                      </div>
                       
                       {res.standard_number && res.standard_number !== 'None' && (
-                        <span style={{ background: 'rgba(224, 90, 16, 0.2)', color: '#F97316', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
+                        <div className="bg-orange-500/10 text-orange-400 px-2.5 py-1 rounded-md text-xs font-semibold">
                           {res.standard_number}
-                        </span>
+                        </div>
                       )}
 
-                      <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>
-                        Page {res.page_number}
-                      </span>
+                      <div className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-md text-xs font-semibold">
+                        Pg {res.page_number}
+                      </div>
 
-                      <span style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#C084FC', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>
-                        Section: {res.section}
-                      </span>
+                      <div className="bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-md text-xs font-semibold">
+                        {res.section}
+                      </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: '#34D399', fontWeight: 600, fontSize: '0.85rem' }}>
-                      <Percent size={14} />
-                      <span>Score: {res.score}</span>
+                    <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-xs bg-emerald-500/10 px-2 py-1 rounded-md shrink-0">
+                      <Percent size={12} />
+                      Score: {res.score}
                     </div>
                   </div>
 
-                  <pre style={{
-                    whiteSpace: 'pre-wrap',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '0.88rem',
-                    color: '#CBD5E1',
-                    background: '#0F172A',
-                    padding: '0.85rem',
-                    borderRadius: '6px',
-                    border: '1px solid #1E293B',
-                    maxHeight: '200px',
-                    overflowY: 'auto'
-                  }}>
-                    {res.text}
-                  </pre>
+                  <div className="relative">
+                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full" />
+                    <pre className="pl-4 m-0 whitespace-pre-wrap font-sans text-sm text-gray-300 bg-transparent border-none max-h-[250px] overflow-y-auto leading-relaxed">
+                      {res.text}
+                    </pre>
+                  </div>
                 </div>
               ))}
             </div>

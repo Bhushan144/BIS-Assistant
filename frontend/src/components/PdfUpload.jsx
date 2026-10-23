@@ -104,20 +104,23 @@ export default function PdfUpload({ onUploadSuccess }) {
   };
 
   return (
-    <div className="bg-[#2f2f2f] rounded-2xl border border-white/5 overflow-hidden shadow-sm w-full shrink-0">
-      <div className="flex items-center justify-between p-5 border-b border-white/5">
+    <div className="glass-card p-0 overflow-hidden w-full shrink-0">
+      <div className="flex items-center justify-between p-5 border-b border-white/10 bg-white/[0.02]">
         <div className="flex items-center gap-3">
-          <UploadCloud className="text-blue-500" size={20} />
-          <span className="font-semibold text-gray-200">Upload Official BIS Documents</span>
+          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
+            <UploadCloud size={18} />
+          </div>
+          <span className="font-semibold text-gray-100">Upload BIS Documents</span>
         </div>
-        <span className="text-xs font-medium text-gray-400">Supports .pdf files only</span>
+        <span className="text-xs font-medium text-gray-500 bg-white/5 px-2 py-1 rounded-md">.pdf only</span>
       </div>
 
-      <div className="p-5">
-        {/* Drag and Drop Zone */}
+      <div className="p-6">
         <div
-          className={`relative flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-            isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500 hover:bg-[#383838]'
+          className={`relative flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${
+            isDragging 
+              ? 'border-blue-500 bg-blue-500/10 scale-[1.01]' 
+              : 'border-white/20 bg-white/5 hover:border-white/30 hover:bg-white/10'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -132,45 +135,46 @@ export default function PdfUpload({ onUploadSuccess }) {
             accept=".pdf,application/pdf"
             className="hidden"
           />
-          <UploadCloud size={40} className={`mb-3 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
-          <h3 className="text-base font-semibold text-gray-200 mb-1">Drag & Drop BIS PDF files here</h3>
-          <p className="text-sm text-gray-400">or click to browse from your computer (Multiple files allowed)</p>
+          <UploadCloud size={48} className={`mb-4 transition-colors ${isDragging ? 'text-blue-400' : 'text-gray-500'}`} />
+          <h3 className="text-base font-semibold text-gray-200 mb-1">Drag & Drop PDF files</h3>
+          <p className="text-sm text-gray-400">or click to browse from computer</p>
         </div>
 
-        {/* File Queue Preview */}
         {selectedFiles.length > 0 && (
-          <div className="mt-6 flex flex-col gap-3">
-            <div className="text-sm font-semibold text-gray-400 mb-1">
-              Ready to Upload ({selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''}):
+          <div className="mt-6 flex flex-col gap-3 animate-[fadeIn_0.3s_ease-out]">
+            <div className="text-sm font-semibold text-gray-400 mb-2">
+              Queue ({selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''}):
             </div>
-            {selectedFiles.map((file, idx) => (
-              <div key={idx} className="flex items-center justify-between bg-[#212121] border border-white/5 p-3 rounded-lg">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <FileText size={18} className="text-blue-400 shrink-0" />
-                  <span className="font-medium text-gray-200 truncate">{file.name}</span>
-                  <span className="text-xs text-gray-500 shrink-0">
-                    ({formatFileSize(file.size)})
-                  </span>
+            
+            <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2">
+              {selectedFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-black/20 border border-white/10 p-3 rounded-xl hover:bg-white/5 transition-colors">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <FileText size={18} className="text-blue-400 shrink-0" />
+                    <span className="font-medium text-gray-200 truncate text-sm">{file.name}</span>
+                    <span className="text-xs text-gray-500 shrink-0 border-l border-white/10 pl-2">
+                      {formatFileSize(file.size)}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/10 transition-colors shrink-0"
+                    onClick={() => removeFileFromQueue(idx)}
+                    disabled={uploading}
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="text-gray-400 hover:text-red-400 hover:bg-white/5 p-1.5 rounded-md transition-colors shrink-0"
-                  onClick={() => removeFileFromQueue(idx)}
-                  disabled={uploading}
-                  title="Remove file"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            <div className="mt-2 flex justify-end">
+            <div className="mt-4 flex justify-end pt-4 border-t border-white/5">
               <button
                 type="button"
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all text-white shadow-lg ${
                   uploading 
-                    ? 'bg-blue-600/50 text-white/70 cursor-wait' 
-                    : 'bg-blue-600 text-white hover:bg-blue-500'
+                    ? 'bg-blue-600/50 cursor-wait' 
+                    : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-[0_4px_20px_rgba(59,130,246,0.3)] hover:-translate-y-0.5'
                 }`}
                 onClick={handleUpload}
                 disabled={uploading}
@@ -178,7 +182,7 @@ export default function PdfUpload({ onUploadSuccess }) {
                 {uploading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    <span>Processing & Indexing...</span>
+                    <span>Uploading & Indexing...</span>
                   </>
                 ) : (
                   <>
@@ -191,17 +195,15 @@ export default function PdfUpload({ onUploadSuccess }) {
           </div>
         )}
 
-        {/* Success Message Banner */}
         {message && (
-          <div className="mt-4 bg-green-900/30 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+          <div className="mt-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-xl flex items-center gap-3 text-sm animate-[fadeIn_0.3s_ease-out]">
             <CheckCircle size={18} className="shrink-0" />
             <div>{message}</div>
           </div>
         )}
 
-        {/* Error / Warning Alert Banner */}
         {error && (
-          <div className="mt-4 bg-red-900/30 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+          <div className="mt-6 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl flex items-center gap-3 text-sm animate-[fadeIn_0.3s_ease-out]">
             <AlertCircle size={18} className="shrink-0" />
             <div>{error}</div>
           </div>
