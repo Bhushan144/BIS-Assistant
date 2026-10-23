@@ -57,10 +57,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Startup event handler to ensure required data directories exist
+# Startup event handler to ensure required data directories exist and pre-warm model
 @app.on_event("startup")
 def on_startup():
     ensure_directories()
+    try:
+        from embeddings.embedding_service import get_embedding_model
+        print("[Startup] Pre-warming FastEmbed model...")
+        get_embedding_model()
+        print("[Startup] FastEmbed model ready.")
+    except Exception as e:
+        print(f"[Startup Warning] FastEmbed pre-warm: {e}")
 
 @app.get("/")
 def root_status():

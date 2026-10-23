@@ -67,52 +67,47 @@ def add_chunks_to_vectorstore(chunks: List[Dict[str, Any]]) -> int:
     client = get_qdrant_client()
     col_name = ensure_collection_exists()
 
-    points = []
-    documents = []
-    
-    # First, collect content for batch embedding
-    for chunk in chunks:
-        content = chunk.get("content", "").strip()
-        if content:
-            documents.append(content)
+    import gc
+    total_indexed = 0
+    batch_size = 5
 
-    if not documents:
-        return 0
+    print(f"[QdrantService] Indexing {len(chunks)} chunks in micro-batches of {batch_size}...")
 
-    print(f"[QdrantService] Generating embeddings for {len(documents)} chunks...")
-    embeddings = embed_documents(documents)
+    for i in range(0, len(chunks), batch_size):
+        chunk_batch = chunks[i:i + batch_size]
+        batch_docs = [c.get("content", "").strip() or " " for c in chunk_batch]
+        batch_embeddings = embed_documents(batch_docs)
 
-    idx = 0
-    for chunk in chunks:
-        content = chunk.get("content", "").strip()
-        if not content:
-            continue
-            
-        # Ensure UUID format for Qdrant ID
-        chunk_id = chunk.get("chunk_id", str(uuid.uuid4()))
-        try:
-            point_id = str(uuid.UUID(chunk_id))
-        except ValueError:
-            point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, chunk_id))
-            
-        payload = {k: v for k, v in chunk.items() if v is not None}
-        
-        points.append(
-            PointStruct(
-                id=point_id,
-                vector=embeddings[idx],
-                payload=payload
+        batch_points = []
+        for j, chunk in enumerate(chunk_batch):
+            chunk_id = chunk.get("chunk_id", str(uuid.uuid4()))
+            try:
+                point_id = str(uuid.UUID(chunk_id))
+            except ValueError:
+                point_id = str(uuid.uuid5(uuid.NAMESPACE_URL, chunk_id))
+
+            payload = {k: v for k, v in chunk.items() if v is not None}
+            batch_points.append(
+                PointStruct(
+                    id=point_id,
+                    vector=batch_embeddings[j],
+                    payload=payload
+                )
             )
+
+        client.upsert(
+            collection_name=col_name,
+            points=batch_points
         )
-        idx += 1
+        total_indexed += len(batch_points)
+        # Reclaim memory immediately after each micro-batch
+        del batch_docs
+        del batch_embeddings
+        del batch_points
+        gc.collect()
 
-    print(f"[QdrantService] Upserting {len(points)} vectors into collection '{col_name}'...")
-    client.upsert(
-        collection_name=col_name,
-        points=points
-    )
-
-    return len(points)
+    print(f"[QdrantService] Successfully indexed {total_indexed} vectors into '{col_name}'.")
+    return total_indexed
 
 def delete_document_chunks(document_id: str) -> None:
     """Remove all vectors associated with a document_id from Qdrant."""
