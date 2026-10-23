@@ -5,7 +5,18 @@ from typing import Optional, List, Dict, Any
 import httpx
 
 # Supabase Storage Configuration
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+def _normalize_supabase_url(url: str) -> str:
+    if not url:
+        return ""
+    url = url.strip()
+    if url.startswith("postgres://") or url.startswith("postgresql://"):
+        import re
+        match = re.search(r"postgres\.([a-zA-Z0-9]+):", url)
+        if match:
+            return f"https://{match.group(1)}.supabase.co"
+    return url.rstrip("/")
+
+SUPABASE_URL = _normalize_supabase_url(os.getenv("SUPABASE_URL", ""))
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY", "")
 SUPABASE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "bis-documents")
 

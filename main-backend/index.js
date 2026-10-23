@@ -24,7 +24,19 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000';
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const configured = [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173'
+    ].filter(Boolean);
+    if (configured.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
   credentials: true
 }));
 app.use(express.json());

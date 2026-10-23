@@ -37,6 +37,7 @@ node_backend_url = os.getenv("NODE_BACKEND_URL", "http://localhost:3000")
 allowed_origins = [
     frontend_url,
     node_backend_url,
+    "https://bis-assistant4u.vercel.app",
     "http://localhost:5173",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
@@ -50,6 +51,7 @@ allowed_origins = list(dict.fromkeys([o for o in allowed_origins if o]))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
