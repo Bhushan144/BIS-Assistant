@@ -62,6 +62,10 @@ app.add_middleware(
 def on_startup():
     ensure_directories()
 
+@app.get("/")
+def root_status():
+    return {"status": "ok", "service": "BIS AI Assistant API"}
+
 # Register API routes under /api
 app.include_router(health_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
