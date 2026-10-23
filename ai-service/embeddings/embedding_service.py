@@ -10,10 +10,6 @@ try:
     FASTEMBED_AVAILABLE = True
 except ImportError:
     FASTEMBED_AVAILABLE = False
-    try:
-        from sentence_transformers import SentenceTransformer
-    except ImportError:
-        SentenceTransformer = None
 
 _model_instance: Optional[Any] = None
 
@@ -23,22 +19,20 @@ def get_embedding_model_name() -> str:
 
 def get_embedding_model() -> Any:
     """
-    Get or initialize singleton instance of embedding model.
-    Uses fastembed (ONNX) when available, fallback to SentenceTransformer.
+    Get or initialize singleton instance of embedding model using FastEmbed (ONNX).
+    Forces threads=1 to prevent ONNX Runtime from spawning threads for all host CPU cores
+    which causes immediate OOM crashes on shared cloud containers (Render Free 512MB).
     """
     global _model_instance
     if _model_instance is None:
         model_name = get_embedding_model_name()
-        if FASTEMBED_AVAILABLE:
-            print(f"[EmbeddingService] Loading lightweight FastEmbed model '{model_name}' (ONNX Runtime)...")
-            _model_instance = TextEmbedding(model_name=model_name)
-            print(f"[EmbeddingService] FastEmbed model '{model_name}' loaded successfully (~75MB RAM).")
-        elif SentenceTransformer is not None:
-            print(f"[EmbeddingService] Loading SentenceTransformer model '{model_name}' (PyTorch)...")
-            _model_instance = SentenceTransformer(model_name)
-            print(f"[EmbeddingService] SentenceTransformer model '{model_name}' loaded successfully.")
-        else:
-            raise RuntimeError("Neither fastembed nor sentence-transformers is installed.")
+        if not FASTEMBED_AVAILABLE:
+            raise RuntimeError("FastEmbed is not installed. Please install fastembed>=0.3.0.")
+        
+        print(f"[EmbeddingService] Loading FastEmbed ONNX model '{model_name}' (single-thread mode)...")
+        # threads=1 is crucial on Render: stops ONNX from creating 32-64 threads for host cores
+        _model_instance = TextEmbedding(model_name=model_name, threads=1)
+        print(f"[EmbeddingService] FastEmbed model '{model_name}' loaded successfully (~50MB RAM).")
     return _model_instance
 
 def embed_text(text: str) -> List[float]:
@@ -46,22 +40,18 @@ def embed_text(text: str) -> List[float]:
     if not text or not text.strip():
         text = " "
     model = get_embedding_model()
-    if FASTEMBED_AVAILABLE:
-        vectors = list(model.embed([text]))
-        return [float(x) for x in vectors[0]]
-    else:
-        embedding = model.encode(text, convert_to_numpy=True)
-        return embedding.tolist()
+    vectors = list(model.embed([text]))
+    return [float(x) for x in vectors[0]]
 
 def embed_documents(texts: List[str]) -> List[List[float]]:
-    """Generate vector embeddings for a list of text strings."""
+    """
+    Generate vector embeddings for a list of text strings.
+    Uses small batch_size=8 to prevent RAM spikes on low-memory servers.
+    """
     if not texts:
         return []
     processed_texts = [t if t and t.strip() else " " for t in texts]
     model = get_embedding_model()
-    if FASTEMBED_AVAILABLE:
-        vectors = list(model.embed(processed_texts, batch_size=32))
-        return [[float(x) for x in v] for v in vectors]
-    else:
-        embeddings = model.encode(processed_texts, batch_size=32, show_progress_bar=False, convert_to_numpy=True)
-        return embeddings.tolist()
+    # Batch size 8 prevents memory accumulation during bulk indexing
+    vectors = list(model.embed(processed_texts, batch_size=8))
+    return [[float(x) for x in v] for v in vectors]
