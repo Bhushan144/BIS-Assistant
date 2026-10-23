@@ -1,7 +1,11 @@
 // In production, calls go to separate backend URLs.
 // In dev, Vite proxy handles routing so both can be empty strings.
-const NODE_API = import.meta.env.VITE_NODE_API_URL || '';
-const AI_API = import.meta.env.VITE_AI_API_URL || '';
+const rawNode = (import.meta.env.VITE_NODE_API_URL || '').trim();
+const rawAi = (import.meta.env.VITE_AI_API_URL || '').trim();
+
+// Strip any trailing slash or accidental /api suffix so calls like /api/auth don't duplicate
+const NODE_API = rawNode.replace(/\/+$/, '').replace(/\/api$/, '');
+const AI_API = rawAi.replace(/\/+$/, '').replace(/\/api$/, '');
 
 // --- Helper: Node backend fetch (auth/chat) with cookies ---
 async function nodeFetch(path, options = {}) {
