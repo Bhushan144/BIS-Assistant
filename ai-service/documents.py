@@ -150,29 +150,55 @@ def get_document_file(document_id: str):
 
 @router.delete("/wipe")
 def wipe_all_documents():
-    """Wipes all documents, uploaded files, and vector DB."""
-    from document_service import DATA_DIR, UPLOADS_DIR, DOCUMENTS_JSON
+    """Wipes all documents, uploaded files, Supabase Storage files, and vector DB."""
+    from document_service import DATA_DIR, UPLOADS_DIR, save_documents_db, load_documents_db
     from vectorstore.qdrant_service import get_qdrant_client, get_collection_name
+    from storage_service import delete_file_from_storage
 
-    # 1. Clear JSON DB
-    if DOCUMENTS_JSON.exists():
-        with open(DOCUMENTS_JSON, "w", encoding="utf-8") as f:
-            json.dump([], f, indent=2)
+    # 1. Load existing docs to delete their cloud storage files
+    docs = load_documents_db()
+    for doc in docs:
+        doc_id = doc.get("document_id")
+        filename = doc.get("filename")
+        if doc_id and filename:
+            try:
+                delete_file_from_storage(f"pdfs/{doc_id}_{filename}")
+                delete_file_from_storage(f"pdfs/{filename}")
+                delete_file_from_storage(f"processed/{doc_id}/chunks.json")
+                delete_file_from_storage(f"processed/{doc_id}/pages.json")
+            except Exception as e:
+                print(f"Error deleting cloud storage files for {doc_id}: {e}")
 
-    # 2. Delete all files in uploads
+    # 2. Save empty document list locally AND sync empty list to Supabase Storage
+    save_documents_db([])
+
+    # 3. Delete all files in uploads
     if UPLOADS_DIR.exists():
         for file in UPLOADS_DIR.iterdir():
             if file.is_file():
-                file.unlink()
+                try:
+                    file.unlink()
+                except Exception:
+                    pass
 
-    # 3. Wipe Qdrant
+    # 4. Clean local processed directory
+    processed_dir = DATA_DIR / "processed"
+    if processed_dir.exists():
+        shutil.rmtree(processed_dir, ignore_errors=True)
+        processed_dir.mkdir(parents=True, exist_ok=True)
+
+    # 5. Wipe Qdrant
     try:
         q_client = get_qdrant_client()
         col_name = get_collection_name()
-        q_client.delete_collection(collection_name=col_name)
+        if q_client.collection_exists(collection_name=col_name):
+            q_client.delete_collection(collection_name=col_name)
         q_client.create_collection(
             collection_name=col_name,
-            vectors_config=qdrant_client.models.VectorParams(size=384, distance=qdrant_client.models.Distance.COSINE)
+            vectors_config=qdrant_client.models.VectorParams(
+                size=384,
+                distance=qdrant_client.models.Distance.COSINE
+            )
         )
     except Exception as e:
         print(f"Error resetting Qdrant: {e}")
