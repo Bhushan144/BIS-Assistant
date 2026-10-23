@@ -11,6 +11,7 @@ import ComplianceInspector from '../components/ComplianceInspector';
 import PdfUpload from '../components/PdfUpload';
 import DocumentList from '../components/DocumentList';
 import VectorSearchTester from '../components/VectorSearchTester';
+import { fetchDocuments } from '../services/api';
 
 const NAV_ITEMS = [
   { id: 'chat', label: 'Chat', icon: MessageSquare, path: '/admin' },
@@ -39,11 +40,8 @@ export default function AdminDashboard() {
   const loadDocumentsList = async () => {
     setLoadingDocs(true);
     try {
-      const response = await fetch('http://localhost:8000/api/documents');
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(Array.isArray(data) ? data : (data.documents || []));
-      }
+      const data = await fetchDocuments();
+      setDocuments(Array.isArray(data) ? data : (data.documents || []));
     } catch (error) {
       console.error("Failed to load documents:", error);
     } finally {

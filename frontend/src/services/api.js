@@ -21,13 +21,69 @@ async function aiFetch(path, options = {}) {
 // NODE BACKEND APIs (auth, chat, conversations)
 // ===========================
 
+export async function authMe() {
+  try {
+    const res = await nodeFetch('/api/auth/me');
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.user || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function authLogin(email, password) {
+  const res = await nodeFetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Server returned status ${res.status}`);
+  }
+  if (!res.ok) throw new Error(data.error || 'Login failed');
+  return data.user;
+}
+
+export async function authRegister(name, email, password) {
+  const res = await nodeFetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password })
+  });
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Server returned status ${res.status}`);
+  }
+  if (!res.ok) throw new Error(data.error || 'Registration failed');
+  return data.user;
+}
+
+export async function authLogout() {
+  try {
+    await nodeFetch('/api/auth/logout', { method: 'POST' });
+  } catch {
+    // Ignore logout network errors
+  }
+}
+
 export async function queryRag(query, topK = 5, language = 'English', chatHistory = []) {
   const response = await nodeFetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, top_k: topK, language, chat_history: chatHistory }),
   });
-  const data = await response.json();
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(`Server returned status ${response.status}`);
+  }
   if (!response.ok) throw new Error(data.detail || data.error || 'RAG query failed');
   return data;
 }
