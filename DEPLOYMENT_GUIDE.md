@@ -135,13 +135,13 @@ Supabase provides both the relational database for authentication/chat and perma
    - **Root Directory**: `main-backend` *(crucial!)*
    - **Runtime**: `Node`
    - **Build Command**: `npm install && npx prisma generate`
-   - **Start Command**: `node index.js`
+   - **Start Command**: `npm start` *(or: `npx prisma migrate deploy && node seed-admin.js && node index.js`)*
    - **Plan**: `Free`
 4. Expand **Advanced** → **Add Environment Variables**:
 
 | Variable Key | Value |
 |--------------|-------|
-| `DATABASE_URL` | `postgresql://postgres.xxx:[PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres` |
+| `DATABASE_URL` | `postgresql://postgres.xxx:[PASSWORD]@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres` |
 | `JWT_SECRET` | Generate a 32+ character random secret (e.g. `openssl rand -hex 32`) |
 | `AI_SERVICE_URL` | Placeholder: `https://bis-ai-service.onrender.com` *(we will verify after Step 5)* |
 | `FRONTEND_URL` | Placeholder: `https://bis-assistant.vercel.app` *(we will update after Step 6)* |
@@ -151,19 +151,27 @@ Supabase provides both the relational database for authentication/chat and perma
 5. Click **Deploy Web Service**.
 6. Wait for the build and deployment to complete.
 
-### 4.1 Run Database Migrations & Admin Seed
-Once the service shows **Live**:
-1. Click the **Shell** tab in the Render dashboard for `bis-node-backend`.
-2. Apply Prisma database migrations:
-   ```bash
-   npx prisma migrate deploy
-   ```
-3. Seed the initial admin account:
-   ```bash
-   node seed-admin.js
-   ```
-   *(Note the output: Admin user created: `admin@bis.gov.in` with default password `admin123`)*.
-4. Copy your backend service URL (e.g., `https://bis-node-backend.onrender.com`).
+### 4.1 Automatic Migrations & Admin Seed (No Shell Needed!)
+> [!TIP]
+> **Why Render Free Doesn't Need a Shell:**
+> On Render's Free tier, the interactive terminal shell is disabled. We solved this by configuring `npm start` to automatically run:
+> ```bash
+> npx prisma migrate deploy && node seed-admin.js && node index.js
+> ```
+> Every time Render deploys or restarts:
+> 1. It applies any pending Prisma migrations to Supabase PostgreSQL.
+> 2. It runs `seed-admin.js` to ensure the admin user (`admin@bis.gov.in` / `admin123`) exists.
+> 3. It starts the Express server.
+>
+> You will see all migration and admin creation logs directly in the **Logs** tab in Render!
+>
+> **Alternative (Run from local machine right now):**
+> Because Supabase is a cloud database accessible over the internet, you can also run migrations directly from your local terminal:
+> ```bash
+> cd main-backend
+> npx prisma migrate deploy
+> node seed-admin.js
+> ```
 
 ---
 
