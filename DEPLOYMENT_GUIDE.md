@@ -168,7 +168,7 @@ Supabase provides both the relational database for authentication/chat and perma
    - **Runtime**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-   - **Plan**: `Free`
+   - **Plan**: `Free` *(Optimized with FastEmbed ONNX runtime to consume ~75MB RAM, well within Render's 512MB limit)*
 4. Expand **Advanced** → **Add Environment Variables**:
 
 | Variable Key | Value |
