@@ -135,7 +135,7 @@ Supabase provides both the relational database for authentication/chat and perma
    - **Root Directory**: `main-backend` *(crucial!)*
    - **Runtime**: `Node`
    - **Build Command**: `npm install && npx prisma generate`
-   - **Start Command**: `npm start` *(or: `npx prisma migrate deploy && node seed-admin.js && node index.js`)*
+   - **Start Command**: `node index.js`
    - **Plan**: `Free`
 4. Expand **Advanced** → **Add Environment Variables**:
 
@@ -149,29 +149,10 @@ Supabase provides both the relational database for authentication/chat and perma
 | `PORT` | `3000` |
 
 5. Click **Deploy Web Service**.
-6. Wait for the build and deployment to complete.
+6. Render will run `node index.js`, bind to port 3000 immediately, and show a green **Live** status!
 
-### 4.1 Automatic Migrations & Admin Seed (No Shell Needed!)
-> [!TIP]
-> **Why Render Free Doesn't Need a Shell:**
-> On Render's Free tier, the interactive terminal shell is disabled. We solved this by configuring `npm start` to automatically run:
-> ```bash
-> npx prisma migrate deploy && node seed-admin.js && node index.js
-> ```
-> Every time Render deploys or restarts:
-> 1. It applies any pending Prisma migrations to Supabase PostgreSQL.
-> 2. It runs `seed-admin.js` to ensure the admin user (`admin@bis.gov.in` / `admin123`) exists.
-> 3. It starts the Express server.
->
-> You will see all migration and admin creation logs directly in the **Logs** tab in Render!
->
-> **Alternative (Run from local machine right now):**
-> Because Supabase is a cloud database accessible over the internet, you can also run migrations directly from your local terminal:
-> ```bash
-> cd main-backend
-> npx prisma migrate deploy
-> node seed-admin.js
-> ```
+> [!NOTE]
+> The database schema (`User`, `Conversation`, `Message`) and initial admin account (`admin@bis.gov.in` / `admin123`) have already been pushed and seeded directly into your Supabase database. There is no need to run migrations inside the web container.
 
 ---
 
