@@ -41,9 +41,11 @@ class ComplianceReportResponse(BaseModel):
     certification_scheme: str
     is_mandatory: Optional[bool] = True
     qco_notice: Optional[str] = None
+    reason: Optional[str] = None
+    matched_document: Optional[str] = None
     mandatory_tests: List[Union[ComplianceTestItem, Dict[str, Any], str]] = []
     required_documents: List[Union[ComplianceDocumentItem, Dict[str, Any], str]] = []
-    marking_requirements: str
+    marking_requirements: Optional[str] = None
 
 @router.post("/check", response_model=ComplianceReportResponse)
 def get_compliance_report(req: ComplianceCheckRequest):

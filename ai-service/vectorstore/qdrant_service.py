@@ -54,6 +54,14 @@ def ensure_collection_exists():
             collection_name=col_name,
             vectors_config=VectorParams(size=VECTOR_DIMENSION, distance=Distance.COSINE),
         )
+    
+    # Ensure keyword indices on payload fields for query filtering
+    try:
+        client.create_payload_index(collection_name=col_name, field_name="document_id", field_schema=rest.PayloadSchemaType.KEYWORD)
+        client.create_payload_index(collection_name=col_name, field_name="standard_number", field_schema=rest.PayloadSchemaType.KEYWORD)
+    except Exception:
+        pass
+
     return col_name
 
 def add_chunks_to_vectorstore(chunks: List[Dict[str, Any]]) -> int:
