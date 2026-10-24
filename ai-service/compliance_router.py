@@ -25,9 +25,13 @@ class ComplianceReportResponse(BaseModel):
     compliance_status: str
     standard_number: Optional[str] = None
     document_title: str
+    title_en: Optional[str] = None
+    title_hi: Optional[str] = None
     certification_scheme: str
-    mandatory_tests: List[str]
-    required_documents: List[str]
+    is_mandatory: Optional[bool] = True
+    qco_notice: Optional[str] = None
+    mandatory_tests: List[Any]
+    required_documents: List[Any]
     marking_requirements: str
 
 @router.post("/check", response_model=ComplianceReportResponse)

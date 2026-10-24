@@ -26,5 +26,7 @@ cred.txt
 data/uploads/*
 !data/uploads/.gitkeep
 data/processed/*
+data/documents.json
 ai-service/data/
+scratch/
 
