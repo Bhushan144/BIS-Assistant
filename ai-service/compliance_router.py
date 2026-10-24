@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any, Dict, Union
 
 # Ensure backend root is in sys.path
 backend_dir = Path(__file__).resolve().parent
@@ -20,6 +20,17 @@ router = APIRouter(prefix="/compliance", tags=["Compliance Services"])
 class ComplianceCheckRequest(BaseModel):
     product_name: str = Field(..., description="Product name or BIS Standard number (e.g. 'Food Mixer', 'Pressure Cooker')")
 
+class ComplianceTestItem(BaseModel):
+    clause: Optional[str] = None
+    test_name: Optional[str] = None
+    test_type: Optional[str] = None
+    requirement: Optional[str] = None
+
+class ComplianceDocumentItem(BaseModel):
+    document: Optional[str] = None
+    category: Optional[str] = None
+    description: Optional[str] = None
+
 class ComplianceReportResponse(BaseModel):
     product_name: str
     compliance_status: str
@@ -30,8 +41,8 @@ class ComplianceReportResponse(BaseModel):
     certification_scheme: str
     is_mandatory: Optional[bool] = True
     qco_notice: Optional[str] = None
-    mandatory_tests: List[Any]
-    required_documents: List[Any]
+    mandatory_tests: List[Union[ComplianceTestItem, Dict[str, Any], str]] = []
+    required_documents: List[Union[ComplianceDocumentItem, Dict[str, Any], str]] = []
     marking_requirements: str
 
 @router.post("/check", response_model=ComplianceReportResponse)
