@@ -39,8 +39,12 @@ class QueryState(TypedDict):
     sources: List[Dict[str, Any]]
     chat_history: List[Dict[str, str]]
 
-def detect_query_understanding(query: str, requested_lang: Optional[str] = None) -> Dict[str, str]:
-    """Detect product category, query intent, and language."""
+def detect_query_understanding(
+    query: str, 
+    requested_lang: Optional[str] = None,
+    chat_history: Optional[List[Dict[str, str]]] = None
+) -> Dict[str, str]:
+    """Detect product category, query intent, and language with context awareness."""
     q_lower = query.lower()
 
     # Product detection
@@ -49,26 +53,62 @@ def detect_query_understanding(query: str, requested_lang: Optional[str] = None)
         product = "Electric Food Mixer"
     elif "cooker" in q_lower or "pressure" in q_lower:
         product = "Pressure Cooker"
-    elif "bottle" in q_lower or "steel" in q_lower:
+    elif "water heater" in q_lower or "geyser" in q_lower or "water-heater" in q_lower or "immersion" in q_lower:
+        product = "Stationary Water Heater"
+    elif "gas stove" in q_lower or "stove" in q_lower or "lpg" in q_lower or "hob" in q_lower or "burner" in q_lower:
+        product = "Domestic Gas Stove"
+    elif "bottle" in q_lower or "steel" in q_lower or "flask" in q_lower:
         product = "Stainless Steel Bottle"
+    elif chat_history:
+        # Check prior messages if query doesn't specify product (e.g. "what are the tests?", "yes")
+        for msg in reversed(chat_history):
+            prev_txt = msg.get("content", "").lower()
+            if "water heater" in prev_txt or "geyser" in prev_txt or "2082" in prev_txt:
+                product = "Stationary Water Heater"
+                break
+            elif "cooker" in prev_txt or "pressure" in prev_txt or "2347" in prev_txt:
+                product = "Pressure Cooker"
+                break
+            elif "gas stove" in prev_txt or "stove" in prev_txt or "4246" in prev_txt:
+                product = "Domestic Gas Stove"
+                break
+            elif "mixer" in prev_txt or "grinder" in prev_txt or "4250" in prev_txt:
+                product = "Electric Food Mixer"
+                break
+
+    # Technical & domain terms that MUST NEVER be classified as casual chitchat
+    technical_indicators = {
+        "standard", "standards", "bis", "isi", "clause", "clauses", "test", "tests", "testing",
+        "certif", "license", "licence", "mandatory", "qco", "requirement", "requirements",
+        "specification", "specifications", "procedure", "inspection", "compliance",
+        "water heater", "heater", "geyser", "cooker", "stove", "mixer", "grinder",
+        "bottle", "pressure", "safety", "voltage", "current", "marking", "annex", "is 2082", "is 2347", "is 4250", "is 4246"
+    }
+    has_technical_intent = any(term in q_lower for term in technical_indicators) or bool(re.search(r"\bis\s*\d+", q_lower))
+
+    clean_q = q_lower.strip().replace("?", "").replace("!", "").replace(".", "").strip()
+    words = clean_q.split()
+
+    # Short affirmations / follow-up responses
+    short_followups = {"yes", "yeah", "yep", "sure", "ok", "okay", "please", "go ahead", "continue", "tell me", "explain", "more", "next"}
+
+    chitchat_exact = {"hi", "hello", "hey", "who are you", "what are you", "how are you", "thanks", "thank you", "bye", "good morning", "good evening", "hi there"}
+    greeting_starters = ("hi ", "hello ", "hey ", "my name is ", "who are you", "thanks ", "thank you ")
+
+    is_chitchat = False
+    if not has_technical_intent:
+        if clean_q in chitchat_exact:
+            is_chitchat = True
+        elif len(words) <= 4 and any(clean_q.startswith(s) for s in greeting_starters):
+            # Only short greetings without technical questions
+            is_chitchat = True
 
     # Intent detection
     intent = "General Requirement"
-    
-    # Detect conversational / chitchat queries
-    clean_q = q_lower.strip().replace("?", "").replace("!", "").replace(".", "").strip()
-    
-    chitchat_exact = {"hi", "hello", "hey", "who are you", "what are you", "how are you", "thanks", "thank you", "ok", "okay", "bye", "good morning", "good evening", "hi there"}
-    chitchat_starters = ("hi ", "hello ", "hey ", "my name is ", "i am ", "who ", "thanks ", "thank you")
-    
-    is_chitchat = False
-    if clean_q in chitchat_exact:
-        is_chitchat = True
-    elif len(clean_q.split()) <= 15 and any(clean_q.startswith(s) for s in chitchat_starters):
-        is_chitchat = True
-        
     if is_chitchat:
         intent = "Conversational"
+    elif clean_q in short_followups and chat_history:
+        intent = "Follow-up"
     elif "safety" in q_lower or "electric" in q_lower or "shock" in q_lower:
         intent = "Safety Requirement"
     elif "test" in q_lower or "testing" in q_lower or "voltage" in q_lower:
@@ -89,7 +129,11 @@ def detect_query_understanding(query: str, requested_lang: Optional[str] = None)
 
 # Node 1: Query Understanding
 def query_understanding_node(state: QueryState) -> QueryState:
-    res = detect_query_understanding(state["query"], state.get("language"))
+    res = detect_query_understanding(
+        state["query"], 
+        state.get("language"),
+        state.get("chat_history")
+    )
     state["product"] = res["product"]
     state["intent"] = res["intent"]
     state["language"] = res["language"]
@@ -101,8 +145,19 @@ def hybrid_retrieval_node(state: QueryState) -> QueryState:
         state["retrieved_chunks"] = []
         return state
 
+    search_query = state["query"]
+    clean_q = search_query.strip().lower().replace("?", "").replace("!", "").replace(".", "")
+    short_followups = {"yes", "yeah", "yep", "sure", "ok", "okay", "please", "go ahead", "continue", "tell me", "explain", "more"}
+
+    # If the user sends a short affirmative or ambiguous follow-up, enrich the retrieval query using previous context
+    if (clean_q in short_followups or len(clean_q.split()) <= 2) and state.get("chat_history"):
+        for msg in reversed(state["chat_history"]):
+            if msg.get("role") == "user" and len(msg.get("content", "")) > 5:
+                search_query = f"{msg['content']} {state.get('product', '')}"
+                break
+
     chunks = hybrid_search(
-        query=state["query"],
+        query=search_query,
         top_k=state.get("top_k", 5),
         document_id=state.get("document_id")
     )

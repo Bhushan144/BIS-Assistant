@@ -15,6 +15,7 @@ dist/
 .vite/
 
 cred.txt
+review2_explanation.md
 
 # Environment & IDE
 .env
