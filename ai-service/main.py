@@ -69,11 +69,11 @@ def on_startup():
     except Exception as e:
         print(f"[Startup Warning] FastEmbed pre-warm: {e}")
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root_status():
     return {"status": "ok", "service": "BIS AI Assistant API"}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check():
     return {"status": "ok", "service": "BIS AI Assistant API"}
 
