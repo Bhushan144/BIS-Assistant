@@ -42,6 +42,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// --- Health Check (for Render always-on ping) ---
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'BIS Node Backend', timestamp: new Date().toISOString() });
+});
+
 // --- Auth Routes (public) ---
 app.use('/api/auth', createAuthRouter(prisma));
 
