@@ -7,6 +7,8 @@ venv/
 ENV/
 reports
 
+BIS-Documents
+
 Architecture_diagram.png
 BIS_Assistant_Architecture_DataFlow.md
 BIS_RAG_IEEE_Paper.tex

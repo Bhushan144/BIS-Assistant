@@ -122,7 +122,7 @@ def generate_grounded_answer(
                 model=model_name,
                 messages=messages,
                 temperature=0.1,  # Low temperature for factual precision
-                max_tokens=1024
+                max_tokens=int(os.getenv("MAX_OUTPUT_TOKENS", "4096"))
             )
 
             answer = response.choices[0].message.content.strip()
